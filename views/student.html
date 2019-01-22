@@ -3,35 +3,41 @@
   <head>
     <meta charset="utf-8" />
     <title>Student <%= userId %></title>
+    <link
+      href="https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.css"
+      rel="stylesheet"
+    />
   </head>
+
   <body data-userId="<%= userId %>">
     <h1>Hello Student <%= userId %></h1>
-    <h4 id="notification"><!-- Some info will be displayed here--></h4>
-    <button onclick="requestForHelp()">Request For Help</button>
-    <div id="map"><!-- We will load a map here later--></div>
-    <!--Load JavaScripts -->
-    <!-- Load socket.io client library -->
+
+    <h4 id="notification"></h4>
+    <button onclick="requestForHelp()">Request for help</button>
+
+    <div id="map" style="width: 600px; height: 400px;">
+      <!-- Load a map here -->
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
-    <!-- Load JQuery from a CDN -->
+
     <script
       type="text/javascript"
       src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"
     ></script>
-    <!-- load libraries before your JS code
-      Write rest of your JS code here -->
+
+    <script src="https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.js"></script>
+
     <script type="text/javascript">
       var socket = io();
-      //Fetch userId from the data-atribute of the body tag
       var userId = document.body.getAttribute('data-userId');
-      /*Fire a 'join' event and send your userId to the server, to join a room - room-name will be the userId itself!
-       */
-
-      socket.emit('join', { userId: userId });
-      //Declare variables, this will be used later
+      socket.emit('join', {
+        userId: userId
+      }); //Join a room, roomname is the userId itself!
+      //Empty variables to store information. This will get filled later
       var requestDetails = {};
       var copDetails = {};
       var map, marker;
-      //student's info... This section will be the handler that we will be writing for when they click request for help
       requestDetails = {
         studentId: userId,
         location: {
@@ -40,19 +46,57 @@
           longitude: -71.088237
         }
       };
-      //when button is clicked, fire request-for-help and send student's userId and location
       function requestForHelp() {
+        //When button is clicked, emit an event
         socket.emit('request-for-help', requestDetails);
-        console.log('got your click');
       }
-      //after request for help is sent, now student needs to listen to any request-accepted event
-      socket.on('request-accepted', function(eventData) {
-        copDetails = eventData; //Save cop details
+
+      L.mapbox.accessToken =
+        'pk.eyJ1IjoibWlid2VibGFiIiwiYSI6ImNqcjcwaHcybTBkazk0NG42cG1mcTgzcWkifQ.weE9dfsAleyskOAp91nSkg';
+      //Load the map and set it to a given lat-lng
+      map = L.mapbox.map('map', 'mapbox.streets');
+      map.setView([42.360411, -71.088237], 16);
+      //Display a default marker
+      marker = L.marker([42.360411, -71.088237]).addTo(map);
+      //Use MapBox geo-coding API
+      map.addControl(
+        L.mapbox
+          .geocoderControl('mapbox.places', {
+            autocomplete: true
+          })
+          .on('select', function(data) {
+            //This function runs when a place is selected
+            //data contains the geocding results
+            console.log(data);
+            //Do something with the results
+            //Extract address and coordinates from the results and save it
+            requestDetails.location = {
+              address: data.feature['place_name'],
+              latitude: data.feature.center[1],
+              longitude: data.feature.center[0]
+            };
+            //Set the marker to new location
+            marker.setLatLng([data.feature.center[1], data.feature.center[0]]);
+          })
+      );
+      //Listen for a 'request-accepted' event
+      socket.on('request-accepted', function(data) {
+        copDetails = data; //Save cop details
         //Display Cop details
-        console.log('in student.html: ', eventData);
         document.getElementById('notification').innerHTML =
-          'An MIT police is coming to your rescue! \n' +
+          'A cop is coming to your rescue! \n' +
+          '<img src="/images/mitpolice.png" width="400px" height="150px">' +
           JSON.stringify(copDetails);
+        //Show cop location on the map
+        L.marker(
+          [copDetails.location.latitude, copDetails.location.longitude],
+          {
+            icon: L.icon({
+              iconUrl: '/images/mitpolice.png',
+              iconSize: [60, 28]
+            })
+          }
+        ).addTo(map);
       });
     </script>
   </body>

@@ -3,45 +3,51 @@
   <head>
     <meta charset="utf-8" />
     <title>Cop <%= userId %></title>
+    <link
+      href="https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.css"
+      rel="stylesheet"
+    />
   </head>
+
   <body data-userId="<%= userId %>">
     <h1>Hello Cop <%= userId %></h1>
-    <h2>Cop Details:</h2>
+    <h2>Cop details:</h2>
     <div id="copDetails"></div>
+
     <h4 id="notification">Waiting for requests...</h4>
+
     <button onclick="helpStudent()">Help Student</button>
-    <div id="map"><!-- We will load a map here later--></div>
-    <!--Load JavaScripts -->
-    <!-- Load socket.io client library -->
+
+    <div id="map" style="width: 600px; height: 400px;"></div>
+
     <script src="/socket.io/socket.io.js"></script>
-    <!-- Load JQuery from a CDN -->
+
     <script
       type="text/javascript"
       src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"
     ></script>
-    <!-- load libraries before your JS code
-      Write rest of your JS code here -->
+
+    <script src="https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.js"></script>
+
     <script type="text/javascript">
       var socket = io();
       //Fetch userId from the data-atribute of the body tag
       var userId = document.body.getAttribute('data-userId');
-      /*Fire a 'join' event and send your userId to the server, to join a room - room-name will be the userId itself!
-       */
-
-      socket.emit('join', { userId: userId });
-      //Declare variables, this will be used later
+      //Join a room, roomname is the userId itself!
+      socket.emit('join', {
+        userId: userId
+      });
+      //Empty variables to store information. This will get filled later
       var requestDetails = {};
       var copDetails = {};
       var map, marker;
-
       //First send a GET request using JQuery AJAX and get the cop's details and save it
       $.ajax({
         url: '/cops/info?userId=' + userId,
         type: 'GET',
         dataType: 'json',
         success: function(data) {
-          //Once response is successful
-          copDetails = data.copDetails; //Save the cop details
+          copDetails = data.copDetails;
           copDetails.location = {
             address: copDetails.location.address,
             longitude: copDetails.location.coordinates[0],
@@ -50,25 +56,60 @@
           document.getElementById('copDetails').innerHTML = JSON.stringify(
             data.copDetails
           );
+          L.mapbox.accessToken =
+            'pk.eyJ1IjoibWlid2VibGFiIiwiYSI6ImNqcjcwaHcybTBkazk0NG42cG1mcTgzcWkifQ.weE9dfsAleyskOAp91nSkg';
+          //Load the map and set it to a cop's lat-lng
+          map = L.mapbox.map('map', 'mapbox.streets');
+          map.setView([42.359328, -71.100761], 14);
+          console.log('copDetails: ', copDetails.location);
+          //Display a default marker
+
+          marker = L.marker([
+            copDetails.location.latitude,
+            copDetails.location.longitude
+          ]).addTo(map);
+          //Use MapBox geo-coding API
+          map.addControl(
+            L.mapbox
+              .geocoderControl('mapbox.places', {
+                autocomplete: true
+              })
+              .on('select', function(data) {
+                //This function runs when a place is selected
+                //data contains the geocding results
+                console.log(data);
+                //Do something with the results
+                //Set the marker to new location
+                marker.setLatLng([
+                  data.feature.center[1],
+                  data.feature.center[0]
+                ]);
+              })
+          );
         },
         error: function(httpRequest, status, error) {
           console.log(error);
         }
       });
-      //Listen for a "request-for-help" event
-      socket.on('request-for-help', function(eventData) {
-        //Once request is received, do this:
-        //Save request details
-        requestDetails = eventData; //Contains info of students
-        //display the data received from the event
+      //Listen for a 'request-for-help' event
+      socket.on('request-for-help', function(data) {
+        requestDetails = data; //Save request details
+        //display student info
         document.getElementById('notification').innerHTML =
-          "Someone's being attacked by a wildling! \n" +
-          JSON.stringify(requestDetails);
+          'You have a new request! \n' + JSON.stringify(requestDetails);
+        //Show student location on the map
+        L.marker(
+          [requestDetails.location.latitude, requestDetails.location.longitude],
+          {
+            icon: L.icon({
+              iconUrl: '/images/mitstudent.png',
+              iconSize: [50, 50]
+            })
+          }
+        ).addTo(map);
       });
-      //event handler for when a student sends a request for help
       function helpStudent() {
-        //Fire a "request-accepted" event/signal and send relevant info back to server
-        console.log('in helpStudent function', copDetails);
+        //On clicking the button, emit a 'request-accepted' event/signal and send relevant info back to server
         socket.emit('request-accepted', {
           requestDetails: requestDetails,
           copDetails: copDetails
