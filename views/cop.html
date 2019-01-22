@@ -60,10 +60,13 @@
             'pk.eyJ1IjoibWlid2VibGFiIiwiYSI6ImNqcjcwaHcybTBkazk0NG42cG1mcTgzcWkifQ.weE9dfsAleyskOAp91nSkg';
           //Load the map and set it to a cop's lat-lng
           map = L.mapbox.map('map', 'mapbox.streets');
-          map.setView([42.359328, -71.100761], 14);
+          map.setView(
+            [copDetails.location.latitude, copDetails.location.longitude],
+            14
+          );
           console.log('copDetails: ', copDetails.location);
           //Display a default marker
-
+          console.log('in cop.html', copDetails.location.latitude);
           marker = L.marker([
             copDetails.location.latitude,
             copDetails.location.longitude
@@ -77,7 +80,7 @@
               .on('select', function(data) {
                 //This function runs when a place is selected
                 //data contains the geocding results
-                console.log(data);
+                console.log('in cop.html on select function', data);
                 //Do something with the results
                 //Set the marker to new location
                 marker.setLatLng([

@@ -3,24 +3,30 @@
   "version": "1.0.0",
   "description": "Uber like app between students and campus police to alert emergencies and dorm lock outs",
   "main": "index.js",
+  "engines": {
+    "node": "8.1.1",
+    "npm": "6.4.1"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "node app.js",
+    "server": "nodemon app.js",
+    "client": "npm run start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mibweblab/unLuck.git"
+    "url": "git+https://github.com/mibweblab/techelp.git"
   },
   "keywords": [
-    "unluck",
+    "techelp",
     "mibweblab"
   ],
   "author": "Carter Theogene",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mibweblab/unLuck/issues"
+    "url": "https://github.com/mibweblab/techelp/issues"
   },
-  "homepage": "https://github.com/mibweblab/unLuck#readme",
+  "homepage": "https://github.com/mibweblab/techelp#readme",
   "dependencies": {
     "async": "^2.6.1",
     "bcrypt": "^3.0.3",
@@ -37,6 +43,8 @@
     "mongoose": "^5.4.4",
     "nodemailer": "^5.0.1",
     "nodemon": "^1.18.9",
+    "passport": "^0.4.0",
+    "passport-google-oauth20": "^1.0.0",
     "react": "^16.7.0",
     "redis": "^2.8.0",
     "serve-favicon": "^2.5.0",
