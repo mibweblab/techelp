@@ -203,7 +203,7 @@ passport.use(
 );
 //pass user to passport where they will be authenticated
 app.get(
-  './auth/google',
+  '/auth/google',
   passport.authenticate('google', {
     scope: ['profile', 'email']
   })
@@ -211,5 +211,5 @@ app.get(
 //callback route handler
 app.get('/auth/google/callback', passport.authenticate('google'));
 
-const PORT = process.env.PORT || 9000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT);
