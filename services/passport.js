@@ -35,7 +35,7 @@ passport.use(
           done(null, existingUser);
         } else {
           //we dont have a user record so make a new record
-          new User({ googleId: profile.id, displayName: profile.displayName })
+          new User({ googleId: profile.id })
             .save()
             .then(user => done(null, user));
         }

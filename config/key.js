@@ -1,9 +1,9 @@
-// dev.js dont commit this
-
-module.exports = {
-  googleClientID:
-    '729698586214-2iobqha5p96hvgaes63i3mj9isdfk84b.apps.googleusercontent.com',
-  googleClientSecret: 'Es8t9xkThr95UFkqjcsSV5x0',
-  mongoURI: 'mongodb://mrcarter:password2019@ds211275.mlab.com:11275/techelp',
-  cookieKey: 'ekfjhspuirfhoiurhfkeuirhliuhfglkwgekuygMwekuyeg'
-};
+//key.js - figure out what set of credentials to return
+//when we are on heroku, heroku has this already set for you so that's how we can figure out whether we are in production or not because when we are on our local machine there's no NODE_ENV
+if (process.env.NODE_ENV === 'production') {
+  //we are in production - return prod set of keys
+  module.exports = require('./prod');
+} else {
+  //we are in development - return the dev keys
+  module.exports = require('./dev');
+}
