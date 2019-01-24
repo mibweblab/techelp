@@ -6,6 +6,9 @@ const consolidate = require('consolidate'); //1
 const _ = require('underscore');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const cookieSession = require('cookie-session');
+const passport = require('passport');
+
 const keys = require('./config/key');
 
 const routes = require('./routes'); //File that contains our endpoints
@@ -38,6 +41,16 @@ mongoose
   );
 
 const app = express();
+
+//keep cookie session for 30days
+app.use(
+  cookieSession({
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    keys: [keys.cookieKey]
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session);
 
 require('./routes/authRoutes')(app);
 //same as if we required authRoutes and assigned it to a variable and call app with it
