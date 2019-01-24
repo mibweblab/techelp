@@ -50,7 +50,7 @@ app.use(
   })
 );
 app.use(passport.initialize());
-app.use(passport.session);
+// app.use(passport.session);
 
 require('./routes/authRoutes')(app);
 //same as if we required authRoutes and assigned it to a variable and call app with it
