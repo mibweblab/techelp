@@ -1,7 +1,7 @@
 const http = require('http');
 const express = require('express');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+require('./models/User');
+require('./services/passport'); //because we're not actually assigning anything to this file we can simply require it
 const consolidate = require('consolidate'); //1
 const _ = require('underscore');
 const bodyParser = require('body-parser');
@@ -11,7 +11,37 @@ const keys = require('./config/key');
 const routes = require('./routes'); //File that contains our endpoints
 // const mongoClient = require('mongodb').MongoClient;
 
+// mongoose.connect(
+//   keys.mongoURI,
+//   { useNewUrlParser: true },
+//   function(err, db) {
+//     //a connection with the mongodb is established here.
+//     console.log('Connected to Database');
+//     if (err) {
+//       console.log("We've encountered an error connecting to your DB: ", err);
+//     }
+//   }
+// );
+
+mongoose
+  .connect(
+    keys.mongoURI,
+    { useNewUrlParser: true }
+  )
+  .then(
+    () => {
+      console.log('connected to mongoDB MLAB');
+    },
+    err => {
+      console.log("We've encountered an error connecting to your DB: ", err);
+    }
+  );
+
 const app = express();
+
+require('./routes/authRoutes')(app);
+//same as if we required authRoutes and assigned it to a variable and call app with it
+
 app.get('/', (req, res) => {
   res.send({ hi: 'there' });
 });
@@ -184,32 +214,6 @@ app.get('/', (req, res) => {
 // //     }
 // //   );
 // // });
-
-//authentication logics
-app.use(passport.initialize());
-
-//let's tell passport to use googleStrategy auth/google
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: keys.googleClientID,
-      clientSecret: keys.googleClientSecret,
-      callbackURL: '/auth/google/callback'
-    },
-    accessToken => {
-      console.log(accessToken);
-    }
-  )
-);
-//pass user to passport where they will be authenticated
-app.get(
-  '/auth/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email']
-  })
-);
-//callback route handler
-app.get('/auth/google/callback', passport.authenticate('google'));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT);
