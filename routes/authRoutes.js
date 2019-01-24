@@ -17,4 +17,9 @@ module.exports = app => {
     // console.log(req);
     console.log('your request came from:', req.user);
   });
+  //Request handler for whenever a user makes a get request to log out of our app
+  app.get('/api/logout', (req, res) => {
+    req.logout(); //passport function to log out, it kills the cookie
+    res.send(req.user);
+  });
 };
