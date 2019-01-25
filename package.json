@@ -4,8 +4,8 @@
   "description": "Uber like app between students and campus police to alert emergencies and dorm lock outs",
   "main": "index.js",
   "engines": {
-    "node": "8.13.0",
-    "npm": "6.5.0-next.0"
+    "node": "11.7.0",
+    "npm": "6.5.0"
   },
   "scripts": {
     "start": "node app.js",
